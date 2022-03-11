@@ -40,16 +40,16 @@ function onMessageHandler(target, context, msg, self) {
 	const commandName = msg.trim();
 	if (commandName === '!crea') {
 		if (visible === true) {
-			client.say(target, `Une prévisualisation de l'objet est deja afficher dans le coin bas droite de l'écran. Merci de ne pas spammer la commande`);
-
+			client.raw(`Une prévisualisation de l'objet est deja afficher dans le coin bas droite de l'écran. Merci de ne pas spammer la commande`);
 		} else {
 			visible = true;
 			canvas.classList.toggle('active');
 			window.setTimeout(() => {
 				canvas.classList.toggle('active');
+				visible = false;
 			}, 20000);
 
-			client.say(target, `Une prévisualisation de l'objet va s'afficher dans un coin en bas à droite de l'écran pendant 15s. Merci de ne pas spammer la commande`);
+			client.raw(`Une prévisualisation de l'objet va s'afficher dans un coin en bas à droite de l'écran pendant 15s. Merci de ne pas spammer la commande`);
 		}
 	}
 }
