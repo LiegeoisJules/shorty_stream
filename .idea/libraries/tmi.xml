@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="tmi" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/node_modules/tmi.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/node_modules/tmi.js" />
+    </CLASSES>
+    <DOCUMENTATION>
+      <root url="https://github.com/tmijs/docs" />
+    </DOCUMENTATION>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
