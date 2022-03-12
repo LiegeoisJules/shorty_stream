@@ -22,5 +22,19 @@ html, body {
     visibility: visible;
 }
 
+.kiwi {
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+    background: green;
+
+    visibility: hidden;
+}
+
+.kiwi.active {
+    visibility: visible;
+}
+
 
 /*# sourceMappingURL=main.css.map*/

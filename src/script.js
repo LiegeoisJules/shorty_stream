@@ -3,12 +3,15 @@ import * as THREE from 'three'
 import * as dat from 'dat.gui'
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
 import {MTLLoader} from "three/examples/jsm/loaders/MTLLoader";
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import tmi from 'tmi.js'
 
 //APP INIT
 const canvas = document.querySelector('canvas.webgl')
+const canvasKiwi = document.querySelector('canvas.kiwi')
 let visible = false;
+let visibleKiwi = false;
 
 // TWITCH INIT
 const apikey = "yb25a2jekkkyq4ap4do53z3lfrsqgn";
@@ -33,14 +36,18 @@ client.connect().then(r => {
 	console.log(`* Connected to ${r[0]}:${r[1]}`);
 });
 
-function onMessageHandler(target, context, msg, self) {
+const mods = ["100585962", "49969797", "31784257"];
+
+async function onMessageHandler(target, context, msg, self) {
+	console.log(context["user-id"]);
 	if (self) {
 		return;
 	}
 	const commandName = msg.trim();
 	if (commandName === '!crea') {
+		await client.deletemessage(target, context.id);
 		if (visible === true) {
-			client.say("shorty_d",`Une prévisualisation de l'objet est deja afficher dans le coin bas droite de l'écran. Merci de ne pas spammer la commande`);
+			await client.say("shorty_d",`Une prévisualisation de l'objet est deja afficher dans le coin bas droite de l'écran. Merci de ne pas spammer la commande`);
 		} else {
 			visible = true;
 			canvas.classList.toggle('active');
@@ -49,7 +56,21 @@ function onMessageHandler(target, context, msg, self) {
 				visible = false;
 			}, 20000);
 
-			client.say("shorty_d",`Une prévisualisation de l'objet va s'afficher dans un coin en bas à droite de l'écran pendant 15s. Merci de ne pas spammer la commande`);
+			await client.say("shorty_d",`Une prévisualisation de l'objet va s'afficher dans un coin en bas à droite de l'écran pendant 15s. Merci de ne pas spammer la commande`);
+		}
+	}
+	if (commandName === '!kiwi') {
+		await client.deletemessage(target, context.id);
+		if (!mods.includes(context["user-id"])) {
+			return;
+		}
+		if (visibleKiwi !== true) {
+			visibleKiwi = true;
+			canvasKiwi.classList.toggle('active');
+			window.setTimeout(() => {
+				canvasKiwi.classList.toggle('active');
+				visibleKiwi = false;
+			}, 20000);
 		}
 	}
 }
@@ -112,20 +133,6 @@ const sizes = {
 	height: window.innerHeight
 }
 
-window.addEventListener('resize', () => {
-	// Update sizes
-	sizes.width = window.innerWidth
-	sizes.height = window.innerHeight
-
-	// Update camera
-	camera.aspect = sizes.width / sizes.height
-	camera.updateProjectionMatrix()
-
-	// Update renderer
-	renderer.setSize(sizes.width, sizes.height)
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-})
-
 /**
  * Camera
  */
@@ -176,8 +183,109 @@ const tick = () => {
 	window.requestAnimationFrame(tick)
 }
 
-tick()
+tick();
 
-canvas.addEventListener('click', () => {
-	console.log(camera.position);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// THREEJS INIT
+// const gui = new dat.GUI()
+const scene_kiwi = new THREE.Scene()
+const loader_kiwi = new GLTFLoader()
+
+let objectToRender_kiwi = null;
+
+// load a resource
+await loader_kiwi.load( 'kiwi.gltf', function ( gltf ) {
+	console.log(gltf);
+	objectToRender_kiwi = gltf.scene
+	objectToRender_kiwi.position.set(0, -25, 0);
+	scene_kiwi.add(objectToRender_kiwi);
+} );
+
+// Lights
+const lights_kiwi = [];
+lights_kiwi[0] = new THREE.PointLight(0xffffff, 0.8, 0);
+// lights[1] = new THREE.SpotLight(0xffffff, 0.8, 0);
+// lights[2] = new THREE.SpotLight(0xffffff, 0.8, 0);
+lights_kiwi[0].position.set(0, 150, 0);
+// lights[1].position.set(-150, 300, -150);
+// lights[2].position.set(-1000, -2000, -1000);
+scene.add(lights_kiwi[0]);
+// scene.add(lights[1]);
+// scene.add(lights[2]);
+
+
+/**
+ * Camera
+ */
+// Base camera
+const camera_kiwi = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.01, 100)
+camera_kiwi.position.x = -31;
+camera_kiwi.position.y = 27;
+camera_kiwi.position.z = 44;
+scene.add(camera_kiwi)
+
+
+// Controls
+const controls_kiwi = new OrbitControls(camera_kiwi, canvasKiwi)
+controls_kiwi.enableDamping = true
+
+/**
+ * Renderer
+ */
+const renderer_kiwi = new THREE.WebGLRenderer({
+	canvas: canvasKiwi,
+	alpha: true
+})
+renderer_kiwi.setSize(sizes.width, sizes.height)
+renderer_kiwi.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+/**
+ * Animate
+ */
+
+const clock_kiwi = new THREE.Clock()
+
+const tick_kiwi = () => {
+
+	const elapsedTime = clock.getElapsedTime();
+	if (objectToRender_kiwi !== null) {
+		objectToRender_kiwi.rotation.y = .4 * elapsedTime;
+	}
+
+	// Update objects
+
+	// Update Orbital Controls
+	// controls.update()
+
+	// Render
+	renderer_kiwi.render(scene_kiwi, camera_kiwi)
+
+	// Call tick again on the next frame
+	window.requestAnimationFrame(tick_kiwi)
+}
+
+tick_kiwi();
+
+
+window.addEventListener('resize', () => {
+	// Update sizes
+	sizes.width = window.innerWidth
+	sizes.height = window.innerHeight
+
+	// Update camera
+	camera.aspect = sizes.width / sizes.height
+	camera.updateProjectionMatrix()
+
+	// Update renderer
+	renderer.setSize(sizes.width, sizes.height)
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+	// Update camera
+	camera_kiwi.aspect = sizes.width / sizes.height
+	camera_kiwi.updateProjectionMatrix()
+
+	// Update renderer
+	renderer_kiwi.setSize(sizes.width, sizes.height)
+	renderer_kiwi.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
